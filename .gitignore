@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Tasks files
+*.pdf
+*.doc
+*.docx
+
+#folders
+
+__pycache__
