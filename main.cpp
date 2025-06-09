@@ -17,10 +17,10 @@ int main() {
             task1_variant4();
             break;
         case 2:
-            task2_variant3();
+            task2();
             break;
         case 3:
-            task3_variant3();
+            task3();
             break;
         case 4:
             task4_variant2();
