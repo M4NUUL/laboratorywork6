@@ -24,7 +24,7 @@ int calculate_path_width(long long n, long long m, long long t) {
     return result;
 }
 
-void task4_variant2() {
+void task4() {
     long long n, m, t;
     cout << "Введи размеры площади n и m: ";
     cin >> n >> m;

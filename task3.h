@@ -90,7 +90,7 @@ bool check_accuracy(const vector<double>& x1, const vector<double>& x2, double e
     return true;
 }
 
-void task3_variant3() {
+void task3() {
     // Параметры варианта 3
     double M = 1.08, N = 0.22, P = -1.16;
     double eps = 1e-3;

@@ -61,8 +61,8 @@ string decrypt_text(const vector<unsigned char>& ciphertext, const unsigned char
     return string(plaintext.begin(), plaintext.end());
 }
 
-// Задание 2, вариант 3
-void task2_variant3() {
+// Задание
+void task2() {
     string input;
     cout << "Введи текст для шифрования: ";
     cin.ignore(); // Очищаем буфер
