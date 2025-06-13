@@ -1,24 +1,26 @@
-def calculate_path_width(n, m, t):
-    left, right = 0, min(n, m) // 2
-    result = 0
-    while left <= right:
-        mid = (left + right) // 2
-        inner_n = n - 2 * mid
-        inner_m = m - 2 * mid
-        tiles_needed = n * m - max(0, inner_n) * max(0, inner_m)
-        if tiles_needed <= t:
-            result = mid
-            left = mid + 1
+def calculate(n, m, t):
+    if n <= 0 or m <= 0 or t <= 0:
+        raise ValueError("Введённые данные должны быть положительными!")
+    weight = 0
+    while n > 2 and m > 2:
+        line = 4 + (n - 2) * 2 + (m - 2) * 2
+        if t >= line:
+            t -= line
+            n -= 2
+            m -= 2
+            weight += 1
         else:
-            right = mid - 1
-    return result
+            break
+    return weight
 
-def task4_variant2():
-    n = int(input("Введи размер площади n: "))
-    m = int(input("Введи размер площади m: "))
-    t = int(input("Введи количество плиток t: "))
-    width = calculate_path_width(n, m, t)
-    print(f"Максимальная ширина дорожки: {width}")
+def main():
+    try:
+        n, m = map(int, input("Введите размеры площади через пробел\n").split())
+        t = int(input("Введите количество имеющихся плиток\n"))
+        result = calculate(n, m, t)
+        print(f"Максимально доступная ширина дорожки: {result}")
+    except ValueError as e:
+        print(e)
 
 if __name__ == "__main__":
-    task4_variant2()
+    main()

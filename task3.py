@@ -1,81 +1,90 @@
-import numpy as np
+import copy
+import math
 
-def gauss_with_pivot(A, b):
-    n = 4
-    A = [row[:] for row in A]
-    b = b[:]
+MAX_ITER = 10000
+EPS = 1e-3
+
+def gauss(A_in, b_in):
+    n = len(A_in)
+    A = copy.deepcopy(A_in)
+    b = b_in[:]
     x = [0.0] * n
-    for k in range(n-1):
-        max_idx = max(range(k, n), key=lambda i: abs(A[i][k]))
-        A[k], A[max_idx] = A[max_idx], A[k]
-        b[k], b[max_idx] = b[max_idx], b[k]
+
+    # Прямой ход
+    for k in range(n):
+        pivotRow = k
+        for i in range(k+1, n):
+            if abs(A[i][k]) > abs(A[pivotRow][k]):
+                pivotRow = i
+        A[k], A[pivotRow] = A[pivotRow], A[k]
+        b[k], b[pivotRow] = b[pivotRow], b[k]
+
         for i in range(k+1, n):
             factor = A[i][k] / A[k][k]
             for j in range(k, n):
                 A[i][j] -= factor * A[k][j]
             b[i] -= factor * b[k]
+
+    # Обратный ход
     for i in range(n-1, -1, -1):
-        x[i] = b[i]
+        s = b[i]
         for j in range(i+1, n):
-            x[i] -= A[i][j] * x[j]
-        x[i] /= A[i][i]
+            s -= A[i][j] * x[j]
+        x[i] = s / A[i][i]
+
     return x
 
-def lu_decomposition(A, b):
-    n = 4
-    L = [[0.0]*n for _ in range(n)]
-    U = [[0.0]*n for _ in range(n)]
-    x = [0.0]*n
-    y = [0.0]*n
-    for i in range(n):
-        L[i][i] = 1.0
-        for j in range(i, n):
-            U[i][j] = A[i][j]
-            for k in range(i):
-                U[i][j] -= L[i][k] * U[k][j]
-        for j in range(i+1, n):
-            L[j][i] = A[j][i]
-            for k in range(i):
-                L[j][i] -= L[j][k] * U[k][i]
-            L[j][i] /= U[i][i]
-    for i in range(n):
-        y[i] = b[i]
-        for j in range(i):
-            y[i] -= L[i][j] * y[j]
-    for i in range(n-1, -1, -1):
-        x[i] = y[i]
-        for j in range(i+1, n):
-            x[i] -= U[i][j] * x[j]
-        x[i] /= U[i][i]
-    return x
+def zeidel(A, b):
+    n = len(A)
+    x = [0.0] * n
+    prev = [0.0] * n
 
-def check_accuracy(x1, x2, eps):
-    return all(abs(a-b) <= eps for a, b in zip(x1, x2))
+    for _ in range(MAX_ITER):
+        for i in range(n):
+            if abs(A[i][i]) < 1e-12:
+                print("Итерационный процесс не сошелся: нулевой диагональный элемент!")
+                return []
+            s = b[i]
+            for j in range(i):
+                s -= A[i][j] * x[j]
+            for j in range(i+1, n):
+                s -= A[i][j] * prev[j]
+            x[i] = s / A[i][i]
+            if math.isnan(x[i]):
+                print("Итерационный процесс не сошелся: NaN!")
+                return []
 
-def task3_variant3():
-    M = 1.08
-    N = 0.22
-    P = -1.16
-    eps = 1e-3
+        eps = max(abs(x[i] - prev[i]) for i in range(n))
+        if eps < EPS:
+            return x
+        prev = x[:]
+
+    print(f"Итерационный процесс не сошелся за {MAX_ITER} итераций!")
+    return []
+
+def main():
+    M = 0.93
+    N = 0.07
+    P = -0.84
     A = [
-        [M, -0.04, 0.21, -18],
-        [0.25, -1.23, N, -0.09],
-        [-0.21, N, 0.8, -0.13],
-        [0.15, -1.31, 0.06, P]
+        [M,   -0.04, 0.21, -18],
+        [0.25, -1.23, N,   -0.09],
+        [-0.21, N,    0.8, -0.13],
+        [0.15, -1.31, 0.06,  P]
     ]
     b = [-1.24, P, 2.56, M]
-    x_gauss = gauss_with_pivot(A, b)
+
     print("Решение методом Гаусса:")
-    for i, val in enumerate(x_gauss):
-        print(f"x{i+1} = {val}")
-    x_lu = lu_decomposition(A, b)
-    print("Решение методом LU:")
-    for i, val in enumerate(x_lu):
-        print(f"x{i+1} = {val}")
-    if check_accuracy(x_gauss, x_lu, eps):
-        print(f"Решения совпадают с точностью {eps}")
-    else:
-        print("Решения не совпадают!")
+    sol_g = gauss(A, b)
+    for val in sol_g:
+        print(f"{val:6}", end=" ")
+    print()
+
+    print("Решение методом Зейделя:")
+    sol_z = zeidel(A, b)
+    for val in sol_z:
+        print(f"{val:6}", end=" ")
+    print()
 
 if __name__ == "__main__":
-    task3_variant3()
+    main()
