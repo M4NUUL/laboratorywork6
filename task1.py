@@ -1,151 +1,149 @@
 import random
-import os
-import time
 
-def z1(M, N):
-    matrix = [[0.0 for _ in range(N)] for _ in range(M)]
-    gen = random.Random()
-    dis = lambda: gen.uniform(-50, 50)
+def t1():
+    N = int(input("Введите размерность матрицы N: "))  
 
-    print("Исходная матрица:")
-    for i in range(M):
-        for j in range(N):
-            matrix[i][j] = dis()
-            print(matrix[i][j], end=" ")
-        print()
+    A = [[random.randint(-10, 10) for _ in range(N)] for _ in range(N)]
 
-    matrix.reverse()
-    print("\nМатрица после переворота строк:")
-    for row in matrix:
-        for num in row:
-            print(num, end=" ")
-        print()
 
-    unique_elements = set()
-    for row in matrix:
-        unique_elements.update(row)
+    print("Исходная матрица A:")
+    for row in A:
+        print(row)
 
-    sorted_elements = sorted(unique_elements)
-    second_min = sorted_elements[1]
-    second_max = sorted_elements[-2]
+    main_diag = [A[i][i] for i in range(N)]
+    secondary_diag = [A[i][N - 1 - i] for i in range(N)]
 
-    print(f"\nВторой минимальный элемент: {second_min}")
-    print(f"Второй максимальный элемент: {second_max}")
+    B = [main_diag, secondary_diag]
 
-def z2(N):
-    chet = (N % 2 == 0)
-    if chet:
-        N2 = N // 2
-    else:
-        N2 = (N + 1) // 2
 
-    matrix = [[0 for _ in range(N2)] for _ in range(N2)]
-    chisl = 100
-    for i in range(N2):
-        for j in range(i + 1):
-            matrix[i][j] = chisl
-            chisl += 5
+    print("\nНовая матрица B (диагонали):")
+    for row in B:
+        print(row)
 
-    for row in matrix:
-        for elem in row:
-            if elem != 0:
-                print(elem, end=" ")
-        print()
+def t2():
+   M, N = int(input("Введите количество строк M: ")), int(input("Введите количество столбцов N: "))
 
-    matrix.reverse()
-    for row in matrix:
-        if not chet:
-            chet = True
-            continue
-        for elem in row:
-            if elem != 0:
-                print(elem, end=" ")
-        print()
+# Генерация матрицы случайными числами от -20 до 20
+A = [[random.randint(-20, 20) for _ in range(N)] for _ in range(M)]
 
-life = []
+print("Исходная матрица:")
+for row in A:
+    print(row)
 
-def initLife(I, J):
-    global life
-    print("Делаем случайное(1) поле или устойчивую фигуру(2)?")
-    cmd = int(input())
-    if cmd == 1:
-        gen = random.Random()
-        life = [[ "#" if gen.randint(0,1) == 1 else "." for _ in range(J)] for _ in range(I)]
-    elif cmd == 2:
-        life = [["." for _ in range(J)] for _ in range(I)]
-        life[0][0] = "#"
-        life[0][1] = "#"
-        life[1][0] = "#"
-        life[1][1] = "#"
+# Сбор всех элементов в один список для поиска max и second_min
+all_elements = [elem for row in A for elem in row]
 
-def pixellife(i, j, prav):
-    count = 0
-    for di in (-1, 0, 1):
-        for dj in (-1, 0, 1):
-            if di == 0 and dj == 0:
+# Поиск максимума и второго наименьшего
+max_elem = max(all_elements)
+sorted_unique = sorted(set(all_elements))
+second_min = sorted_unique[1] if len(sorted_unique) > 1 else sorted_unique[0]  # если все числа одинаковые
+
+replacement_value = max_elem - second_min
+
+# Замена диагональных элементов
+for i in range(M):
+    for j in range(N):
+        if i == j or i + j == N - 1:
+            A[i][j] = replacement_value
+
+print("\nМатрица после замены диагональных элементов:")
+for row in A:
+    print(row)
+    
+def is_valid_sudoku(board):
+    rows = [set() for _ in range(6)]
+    cols = [set() for _ in range(6)]
+    boxes = [set() for _ in range(4)]
+
+    for r in range(6):
+        for c in range(6):
+            num = board[r][c]
+            if num == '.':
                 continue
-            ni, nj = i + di, j + dj
-            if 0 <= ni < len(life) and 0 <= nj < len(life[0]):
-                if life[ni][nj] == "#":
-                    count += 1
+            if num in rows[r] or num in cols[c]:
+                return False
+            box_index = (r // 3) * 2 + (c // 3)
+            if num in boxes[box_index]:
+                return False
+            rows[r].add(num)
+            cols[c].add(num)
+            boxes[box_index].add(num)
+    return True
 
-    if prav == 1:
-        if life[i][j] == ".":
-            return "#" if count == 3 else "."
-        else:
-            return "." if (count < 2 or count > 3) else "#"
-    elif prav == 2:
-        if life[i][j] == ".":
-            return "#" if (count % 2 == 0 and count != 0) else "."
-        else:
-            return "#" if (count % 2 == 1) else "."
-    else:
-        return "X"
-
-def printlife():
-    for row in life:
-        print("".join(row))
-    print()
-
-def lifegame(I, J):
-    global life
-    initLife(I, J)
-
-    print("Играем по:\n"
-          "1. Cтандартным правилам (Живая умирает когда соседей <2 и >3, мертвая воскресает при 3 живых соседях)\n"
-          "2. Измененным (Живая выживет если кол-во соседей нечётное, мертвая воскреснет если кол-во соседей чётное)\n>>> ", end="")
-    prav = int(input())
-
+def input_board():
+    board = [['.' for _ in range(6)] for _ in range(6)]
+    print("Введите заполненные ячейки в формате: row col value (1-6). Введите 'end' для завершения.")
     while True:
-        os.system("clear")
-        printlife()
+        line = input(">> ")
+        if line.lower() == 'end':
+            break
+        try:
+            r, c, v = line.strip().split()
+            r, c = int(r)-1, int(c)-1
+            if not (0 <= r < 6 and 0 <= c < 6 and v in '123456789'):
+                print("Ошибка координат или значения.")
+                continue
+            board[r][c] = v
+        except:
+            print("Ошибка ввода. Пример: 1 2 5")
+    return board
 
-        nextFrame = [[None for _ in range(J)] for _ in range(I)]
-        for i in range(I):
-            for j in range(J):
-                nextFrame[i][j] = pixellife(i, j, prav)
+def generate_random_board(filled_cells=10):
+    board = [['.' for _ in range(6)] for _ in range(6)]
+    attempts = 0
+    while filled_cells > 0 and attempts < 100:
+        r = random.randint(0, 5)
+        c = random.randint(0, 5)
+        v = str(random.randint(1, 6))
+        if board[r][c] != '.':
+            continue
+        board[r][c] = v
+        if not is_valid_sudoku(board):
+            board[r][c] = '.'
+        else:
+            filled_cells -= 1
+        attempts += 1
+    return board
 
-        life = nextFrame
-        time.sleep(1)
-
-def main():
-    print("Какое задание демонстрировать? > ", end="")
-    cmd = int(input())
+def print_board(board):
+    print("\nТекущая доска:")
+    for row in board:
+        print(" ".join(row))
     print()
-    if cmd == 1:
-        print("Введите через пробел M и N размеры матрицы")
-        M, N = map(int, input().split())
-        z1(M, N)
-    elif cmd == 2:
-        print("Введите количество (N) строк")
-        N = int(input())
-        z2(N)
-    elif cmd == 3:
-        print("Введите через пробел размеры поля")
-        I, J = map(int, input().split())
-        lifegame(I, J)
-    else:
-        print("Введена неверная команда!")
 
-if __name__ == "__main__":
-    main()
+def t3():
+    print("Выберите режим:")
+    print("1 — Ввод вручную")
+    print("2 — Случайная генерация")
+    choice = input(">> ")
+    if choice == '1':
+        board = input_board()
+    else:
+        board = generate_random_board()
+
+    print_board(board)
+
+    if is_valid_sudoku(board):
+        print("Доска корректна по правилам судоку.")
+    else:
+        print("Нарушены правила судоку.")
+        
+        
+def main():
+    print("Выберите задачу:")
+    print("1. Задача 1")
+    print("2. Задача 2")
+    print("3. Задача 3")
+    
+    choice = input("Введите номер задачи (1-3): ")
+    
+    if choice == '1':
+        t1()
+    elif choice == '2':
+        t2()
+    elif choice == '3':
+        t3()
+    else:
+        print("Неверный выбор. Пожалуйста, выберите 1, 2 или 3.")
+        
+main()

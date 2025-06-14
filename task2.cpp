@@ -347,8 +347,7 @@ pair<Block, Block> getKeyIv() {
 }
 
 int main() {
-    cout << "Шифровальная машина имени НГТУ\nДобро пожаловать!" << endl;
-    cout << "Будем\n1. Шифровать\n2. Дешифровать\n    Ввод > ";
+    cout << "Выберете действие:\n1. Шифровать\n2. Дешифровать\nВвод > ";
     int cmd; cin >> cmd;
     if (cmd == 1) {
         string text = getText(0);
@@ -375,4 +374,5 @@ int main() {
     } else {
         cout << "Введена неверная команда!" << endl;
     }
+    return 0;
 }

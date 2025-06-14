@@ -1,209 +1,190 @@
 #include <iostream>
 #include <vector>
+#include <cstdlib>
+#include <ctime>
 #include <algorithm>
-#include <random>
 #include <set>
-#include <string>
-#include <thread>
-#include <chrono>
+#include <unordered_set>
 
 using namespace std;
 
+void t1() {
+    int N;
+    cout << "Введите размерность матрицы N (N x N): ";
+    cin >> N;
+    vector<vector<int>> A(N, vector<int>(N));
+    vector<vector<int>> B(2, vector<int>(N));
 
+    srand(time(0)); // Инициализация генератора случайных чисел
 
-void z1(int M, int N) {
-    vector<vector<double>> matrix(M, vector<double>(N));
+    cout << "Исходная матрица A:\n";
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            A[i][j] = rand() % 21 - 10; 
+            cout << A[i][j] << "\t";
+        }
+        cout << "\n";
+    }
 
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<> dis(-50, 50);
+    // Заполнение матрицы B диагоналями
+    for (int i = 0; i < N; ++i) {
+        B[0][i] = A[i][i];         // главная диагональ
+        B[1][i] = A[i][N - 1 - i]; // побочная диагональ
+    }
 
+    // Вывод матрицы B
+    cout << "\nМатрица B (две строки с диагоналями):\n";
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < N; ++j) {
+            cout << B[i][j] << "\t";
+        }
+        cout << "\n";
+    }
+}
+
+void t2() {
+    const int M = 5;
+    const int N = 6;
+    vector<vector<int>> A(M, vector<int>(N));
+    vector<int> all_elements;
+
+    srand(time(0));
+
+    // Генерация матрицы и сбор всех элементов
     cout << "Исходная матрица:\n";
     for (int i = 0; i < M; ++i) {
         for (int j = 0; j < N; ++j) {
-            matrix[i][j] = dis(gen);
-            cout << matrix[i][j] << " ";
+            A[i][j] = rand() % 41 - 20; // от -20 до 20
+            cout << A[i][j] << "\t";
+            all_elements.push_back(A[i][j]);
         }
-        cout << endl;
+        cout << "\n";
     }
 
-    reverse(matrix.begin(), matrix.end());
+    // Нахождение максимума и второго минимального
+    int max_elem = *max_element(all_elements.begin(), all_elements.end());
 
-    cout << "\nМатрица после переворота строк:\n";
-    for (auto& row : matrix) {
-        for (double num : row)
-            cout << num << " ";
-        cout << endl;
+    // Используем set для получения уникальных значений и сортировки
+    set<int> unique_elements(all_elements.begin(), all_elements.end());
+    int second_min = *unique_elements.begin();
+    if (unique_elements.size() > 1) {
+        auto it = unique_elements.begin();
+        ++it;
+        second_min = *it;
     }
 
-    set<double> unique_elements;
-    for (auto& row : matrix)
-        unique_elements.insert(row.begin(), row.end());
+    int replacement_value = max_elem - second_min;
 
-    vector<double> sorted_elements(unique_elements.begin(), unique_elements.end());
-
-    double second_min = sorted_elements[1];
-    double second_max = sorted_elements[sorted_elements.size() - 2];
-
-    cout << "\nВторой минимальный элемент: " << second_min << endl;
-    cout << "Второй максимальный элемент: " << second_max << endl;
-}
-
-
-
-void z2(int N) {
-    bool chet = (N % 2 == 0);
-    int N2;
-    if (chet) {N2 = N/2;} else {N2 = (N+1)/2;} 
-    vector<vector<int>> matrix(N2, vector<int>(N2));
-    int chisl = 100;
-    for (int i = 0; i < N2; i++) {
-        for (int j = 0; j < i+1; j++) {
-            matrix[i][j] = chisl;
-            chisl += 5;
-        }
-    }
-    for (const auto& row : matrix) {
-        for (const auto& elem : row) {
-            if (elem != 0) {cout << elem << " ";}
-        }
-        cout << endl;
-    }
-    reverse(matrix.begin(), matrix.end());
-    for (const auto& row : matrix) {
-        if (!chet) {
-            chet = true;
-            continue;
-        } else {
-            for (const auto& elem : row) {
-                if (elem != 0) {cout << elem << " ";}
-            }
-            cout << endl;
-        }
-    }
-}
-
-
-
-
-
-vector<vector<string>> life;
-
-void initLife(int I, int J) {
-    cout << "Делаем случайное(1) поле или устойчивую фигуру(2)?" << endl;
-    int cmd;
-    cin >> cmd;
-    if (cmd == 1) {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<> dis(0, 1);
-
-        life.resize(I, vector<string>(J));
-
-        for (int i = 0; i < I; ++i) {
-            for (int j = 0; j < J; ++j) {
-                life[i][j] = (dis(gen) == 0) ? "." : "#";
-            }
-        }
-    } else if (cmd == 2) {
-        life.resize(I, vector<string>(J, "."));
-        life[0][0] = "#";
-        life[0][1] = "#";
-        life[1][0] = "#";
-        life[1][1] = "#";
-    }
-}
-
-string pixellife(int i, int j, int prav) {
-    int count = 0;
-    
-    for (int di = -1; di <= 1; di++) {
-        for (int dj = -1; dj <= 1; dj++) {
-            if (di == 0 && dj == 0) continue;
-            int ni = i + di;
-            int nj = j + dj;
-
-            if (ni >= 0 && ni < life.size() && nj >= 0 && nj < life[0].size()) {
-                if (life[ni][nj] == "#") count++;
+    // Замена элементов на диагоналях
+    for (int i = 0; i < M; ++i) {
+        for (int j = 0; j < N; ++j) {
+            if (i == j || i + j == N - 1) {
+                A[i][j] = replacement_value;
             }
         }
     }
 
-    if (prav == 1) {
-        if (life[i][j] == ".") {
-            return (count == 3) ? "#" : ".";
-        } else {
-            return (count < 2 || count > 3) ? "." : "#";
+    // Вывод результата
+    cout << "\nМатрица после замены диагональных элементов:\n";
+    for (int i = 0; i < M; ++i) {
+        for (int j = 0; j < N; ++j) {
+            cout << A[i][j] << "\t";
         }
-    } else if (prav == 2) {
-        if (life[i][j] == ".") {
-            return (count % 2 == 0 && count != 0) ? "#" : ".";
-        } else {
-            return (count % 2 == 1) ? "#" : ".";
-        }
-    } else {
-        return "X";
+        cout << "\n";
     }
 }
 
-void printlife() {
-    for (auto& row : life) {
-        for (auto& cell : row) cout << cell;
-        cout << endl;
+bool isValidSudoku(const vector<vector<char>>& board) {
+    vector<unordered_set<char>> rows(6), cols(6), boxes(4);
+    for (int r = 0; r < 6; ++r) {
+        for (int c = 0; c < 6; ++c) {
+            char num = board[r][c];
+            if (num == '.') continue;
+            int boxIndex = (r / 3) * 2 + (c / 3);
+            if (rows[r].count(num) || cols[c].count(num) || boxes[boxIndex].count(num))
+                return false;
+            rows[r].insert(num);
+            cols[c].insert(num);
+            boxes[boxIndex].insert(num);
+        }
     }
-    cout << endl;
+    return true;
 }
 
-void lifegame(int I, int J) {
-    initLife(I, J);
-
-    cout << "Играем по:\n"
-            "1. Cтандартным правилам (Живая умирает когда соседей <2 и >3, мертвая воскресает при 3 живых соседях)\n"
-            "2. Измененным (Живая выживет если кол-во соседей нечётное, мертвая воскреснет если кол-во соседей чётное)\n"
-            ">>> ";
-    int prav;
-    cin >> prav;
-
+vector<vector<char>> inputBoard() {
+    vector<vector<char>> board(6, vector<char>(6, '.'));
+    cout << "Введите заполненные ячейки (строка столбец значение), от 1 до 6. Введите -1 для завершения:\n";
     while (true) {
-        system("clear");
-        printlife();
-
-        vector<vector<string>> nextFrame(I, vector<string>(J));
-        for (int i = 0; i < I; ++i) {
-            for (int j = 0; j < J; ++j) {
-                nextFrame[i][j] = pixellife(i, j, prav);
-            }
+        int r, c;
+        char val;
+        cout << ">> ";
+        cin >> r;
+        if (r == -1) break;
+        cin >> c >> val;
+        if (r < 1 || r > 6 || c < 1 || c > 6 || val < '1' || val > '9') {
+            cout << "Неверный ввод. Повторите.\n";
+            continue;
         }
-
-        life = nextFrame;
-
-        this_thread::sleep_for(chrono::milliseconds(1000));
+        board[r - 1][c - 1] = val;
     }
-
+    return board;
 }
 
+vector<vector<char>> generateRandomBoard(int filled = 10) {
+    vector<vector<char>> board(6, vector<char>(6, '.'));
+    srand(time(0));
+    int attempts = 0;
+    while (filled > 0 && attempts < 100) {
+        int r = rand() % 6;
+        int c = rand() % 6;
+        char val = '1' + rand() % 6;
+        if (board[r][c] != '.') continue;
+        board[r][c] = val;
+        if (!isValidSudoku(board)) {
+            board[r][c] = '.';
+        } else {
+            --filled;
+        }
+        ++attempts;
+    }
+    return board;
+}
+
+void printBoard(const vector<vector<char>>& board) {
+    cout << "\nТекущая доска:\n";
+    for (const auto& row : board) {
+        for (char c : row) cout << c << ' ';
+        cout << '\n';
+    }
+}
+
+void t3() {
+    cout << "Выберите режим:\n1 — Ввод вручную\n2 — Случайная генерация\n>> ";
+    int choice;
+    cin >> choice;
+    vector<vector<char>> board;
+    if (choice == 1)
+        board = inputBoard();
+    else
+        board = generateRandomBoard();
+
+    printBoard(board);
+
+    if (isValidSudoku(board))
+        cout << "Доска корректна по правилам судоку.\n";
+    else
+        cout << "Нарушены правила судоку.\n";
+}
 
 int main() {
-    cout << "Какое задание демонстрировать? > ";
-    int cmd;
-    cin >> cmd;
-    cout << endl;
-    if (cmd == 1) {
-        cout << "Введите через пробел M и N размеры матрицы" << endl;
-        int M, N;
-        cin >> M >> N;
-        z1(M,N);
-    } else if (cmd == 2) {
-        cout << "Введите количество (N) строк" << endl;
-        int N;
-        cin >> N;
-        z2(N);
-    } else if (cmd == 3) {
-        cout << "Введите через пробел размеры поля" << endl;
-        int I, J;
-        cin >> I >> J;
-        lifegame(I,J);
-    } else {
-        cout << "Введена неверная команда!" << endl;
+    cout << "Выберите задачу:\n1 — Задача 1\n2 — Задача 2\n3 — Задача 3\n>> ";
+    int task;
+    cin >> task;
+    switch (task) {
+        case 1: t1(); break;
+        case 2: t2(); break;
+        case 3: t3(); break;
+        default: cout << "Неверный выбор задачи.\n"; break;
     }
+    return 0;
 }
